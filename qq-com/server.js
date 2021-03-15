@@ -39,13 +39,19 @@ var server = http.createServer(function (request, response) {
         response.end()
 
     } else if (path === '/friends.js') {
-        response.statusCode = 200
-        response.setHeader('Content-Type', 'text/javascript;charset=utf-8')
-        const string = fs.readFileSync('./public/friends.js').toString()
-        const data = fs.readFileSync('./public/friends.json').toString()
-        const string2 = string.replace('{{ data }}', data)
-        response.write(string2)
-        response.end()
+        if (request.headers['referer'.indexOf('http://my.com:9999')]) {
+            response.statusCode = 200
+            response.setHeader('Content-Type', 'text/javascript;charset=utf-8')
+            const string = `window['{{xxx}}']({{ data }})`
+            const data = fs.readFileSync('./public/friends.json').toString()
+            const string2 = string.replace('{{ data }}', data).replace('{{xxx}}', query.callback)
+            response.write(string2)
+            response.end()
+
+        } else {
+            response.statusCode = 404
+            response.end()
+        }
     } else {
         response.statusCode = 404
         response.setHeader('Content-Type', 'text/html;charset=utf-8')
